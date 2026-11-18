@@ -4,29 +4,10 @@ import { useState } from "react";
 import Image from "next/image";
 import { MessageCircle, Send, ShieldCheck, Sparkles, Truck, RefreshCw, ZoomIn } from "lucide-react";
 import EnquiryModal from "./EnquiryModal";
+import type { StorefrontProduct } from "@/lib/serializers";
 
 interface ProductDetailViewerProps {
-  product: {
-    id: string;
-    name: string;
-    slug: string;
-    sku: string;
-    price?: unknown;
-    discountedPrice?: unknown;
-    mainImage: string;
-    images: { id: string; url: string; alt?: string | null }[];
-    shortDescription?: string | null;
-    description?: string | null;
-    material?: string | null;
-    purity?: string | null;
-    weight?: string | null;
-    stoneDetails?: string | null;
-    dimensions?: string | null;
-    inStock: boolean;
-    isFeatured: boolean;
-    isNewArrival: boolean;
-    category?: { name: string; slug: string } | null;
-  };
+  product: StorefrontProduct;
   whatsappNumber?: string;
 }
 

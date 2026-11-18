@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db/prisma";
 import ProductCard from "@/components/storefront/ProductCard";
+import { serializeProducts } from "@/lib/serializers";
 import { ChevronRight, Sparkles } from "lucide-react";
 
 
@@ -59,9 +60,11 @@ export default async function IndividualCollectionPage({ params }: CollectionPag
   }
 
   const settings = await prisma.websiteSettings.findUnique({ where: { id: "default" } });
-  const products = collection.products
-    .map((cp) => cp.product)
-    .filter((p) => p.isPublished);
+  const products = serializeProducts(
+    collection.products
+      .map((cp) => cp.product)
+      .filter((p) => p.isPublished)
+  );
 
   return (
     <div>

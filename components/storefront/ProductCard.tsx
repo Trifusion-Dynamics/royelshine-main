@@ -5,27 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { MessageCircle, Eye, Sparkles } from "lucide-react";
 import EnquiryModal from "./EnquiryModal";
+import type { StorefrontProduct } from "@/lib/serializers";
 
 export interface ProductCardProps {
-  product: {
-    id: string;
-    name: string;
-    slug: string;
-    sku: string;
-    price?: unknown;
-    discountedPrice?: unknown;
-    mainImage: string;
-    purity?: string | null;
-    material?: string | null;
-    weight?: string | null;
-    isFeatured?: boolean;
-    isNewArrival?: boolean;
-    inStock?: boolean;
-    category?: {
-      name: string;
-      slug: string;
-    } | null;
-  };
+  product: StorefrontProduct;
   whatsappNumber?: string;
 }
 

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { prisma } from "@/lib/db/prisma";
 import ProductCard from "@/components/storefront/ProductCard";
+import { serializeProducts } from "@/lib/serializers";
 import type { Prisma } from "@prisma/client";
 import { Filter, SlidersHorizontal, ArrowUpDown, X, Search, Sparkles } from "lucide-react";
 
@@ -103,6 +104,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     }),
     prisma.websiteSettings.findUnique({ where: { id: "default" } }),
   ]);
+
+  const serializedProducts = serializeProducts(products);
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
@@ -354,7 +357,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product) => (
+              {serializedProducts.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}

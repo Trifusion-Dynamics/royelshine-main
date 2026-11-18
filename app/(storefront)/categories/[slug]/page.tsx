@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db/prisma";
 import ProductCard from "@/components/storefront/ProductCard";
+import { serializeProducts } from "@/lib/serializers";
 import type { Prisma } from "@prisma/client";
 import { ChevronRight, SlidersHorizontal } from "lucide-react";
 
@@ -54,6 +55,8 @@ export default async function CategoryListingPage({ params, searchParams }: Cate
       category: { select: { name: true, slug: true } },
     },
   });
+
+  const serializedProducts = serializeProducts(products);
 
   const settings = await prisma.websiteSettings.findUnique({ where: { id: "default" } });
 
@@ -153,7 +156,7 @@ export default async function CategoryListingPage({ params, searchParams }: Cate
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-            {products.map((product) => (
+            {serializedProducts.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}

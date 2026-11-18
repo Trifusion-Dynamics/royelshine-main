@@ -4,6 +4,7 @@ import NextLink from "next/link";
 import { prisma } from "@/lib/db/prisma";
 import HeroCarousel from "@/components/storefront/HeroCarousel";
 import ProductCard from "@/components/storefront/ProductCard";
+import { serializeProducts } from "@/lib/serializers";
 import {
   Sparkles,
   ArrowRight,
@@ -54,6 +55,8 @@ export default async function HomePage() {
     },
   });
 
+  const serializedFeatured = serializeProducts(featuredProducts);
+
   // 5. Fetch New Arrivals
   const newArrivals = await prisma.product.findMany({
     where: { isPublished: true, isNewArrival: true },
@@ -65,6 +68,8 @@ export default async function HomePage() {
       },
     },
   });
+
+  const serializedNewArrivals = serializeProducts(newArrivals);
 
   // 6. Fetch Testimonials
   const testimonials = await prisma.testimonial.findMany({
@@ -259,7 +264,7 @@ export default async function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-          {featuredProducts.map((product) => (
+          {serializedFeatured.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
@@ -336,7 +341,7 @@ export default async function HomePage() {
       </section>
 
       {/* 7. NEW ARRIVALS */}
-      {newArrivals.length > 0 && (
+      {serializedNewArrivals.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-10">
             <div>
@@ -357,7 +362,7 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-            {newArrivals.map((product) => (
+            {serializedNewArrivals.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db/prisma";
 import ProductDetailViewer from "@/components/storefront/ProductDetailViewer";
 import ProductCard from "@/components/storefront/ProductCard";
+import { serializeProduct, serializeProducts } from "@/lib/serializers";
 import { ChevronRight } from "lucide-react";
 
 
@@ -67,6 +68,8 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     notFound();
   }
 
+  const serializedProduct = serializeProduct(product);
+
   // Fetch related products from same category
   const relatedProducts = await prisma.product.findMany({
     where: {
@@ -80,26 +83,28 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     },
   });
 
+  const serializedRelated = serializeProducts(relatedProducts);
+
   const settings = await prisma.websiteSettings.findUnique({ where: { id: "default" } });
 
   // Product JSON-LD Structured Data
   const jsonLd = {
     "@context": "https://schema.org/",
     "@type": "Product",
-    name: product.name,
-    image: [product.mainImage],
-    description: product.shortDescription || product.description,
-    sku: product.sku,
+    name: serializedProduct.name,
+    image: [serializedProduct.mainImage],
+    description: serializedProduct.shortDescription || serializedProduct.description,
+    sku: serializedProduct.sku,
     brand: {
       "@type": "Brand",
       name: "Royal Shine Jewellery",
     },
     offers: {
       "@type": "Offer",
-      url: `https://royalshinejewellery.com/products/${product.slug}`,
-      priceCurrency: product.currency || "INR",
-      price: product.price ? product.price.toString() : "0",
-      availability: product.inStock
+      url: `https://royalshinejewellery.com/products/${serializedProduct.slug}`,
+      priceCurrency: serializedProduct.currency || "INR",
+      price: serializedProduct.price ?? "0",
+      availability: serializedProduct.inStock
         ? "https://schema.org/InStock"
         : "https://schema.org/PreOrder",
     },
@@ -122,29 +127,29 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           <Link href="/products" className="hover:text-[#C5A265] transition-colors">
             Jewellery
           </Link>
-          {product.category && (
+          {serializedProduct.category && (
             <>
               <ChevronRight className="w-3.5 h-3.5 flex-shrink-0 text-zinc-400" />
               <Link
-                href={`/categories/${product.category.slug}`}
+                href={`/categories/${serializedProduct.category.slug}`}
                 className="hover:text-[#C5A265] transition-colors"
               >
-                {product.category.name}
+                {serializedProduct.category.name}
               </Link>
             </>
           )}
           <ChevronRight className="w-3.5 h-3.5 flex-shrink-0 text-zinc-400" />
-          <span className="text-[#1A1A1A] font-medium truncate max-w-xs">{product.name}</span>
+          <span className="text-[#1A1A1A] font-medium truncate max-w-xs">{serializedProduct.name}</span>
         </nav>
 
         {/* Interactive Product Detail Viewer */}
         <ProductDetailViewer
-          product={product}
+          product={serializedProduct}
           whatsappNumber={settings?.whatsappNumber}
         />
 
         {/* Related Jewellery Section */}
-        {relatedProducts.length > 0 && (
+        {serializedRelated.length > 0 && (
           <div className="mt-20 pt-14 border-t border-[#EAE4D9]">
             <div className="text-center max-w-xl mx-auto mb-10">
               <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[#C5A265]">
@@ -156,12 +161,12 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((rel) => (
-              <ProductCard
-                key={rel.id}
-                product={rel}
-                whatsappNumber={settings?.whatsappNumber}
-              />
+              {serializedRelated.map((rel) => (
+                <ProductCard
+                  key={rel.id}
+                  product={rel}
+                  whatsappNumber={settings?.whatsappNumber}
+                />
               ))}
             </div>
           </div>
