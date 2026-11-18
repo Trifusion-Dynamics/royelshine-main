@@ -24,6 +24,8 @@
 @layer base {
   :root {
     --radius: 0.5rem;
+    --background: var(--color-background);
+    --foreground: var(--color-foreground);
   }
 
   body {
