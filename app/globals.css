@@ -1,26 +1,87 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-background: #FAF8F5;
+  --color-foreground: #1A1A1A;
+  --color-surface: #FFFFFF;
+  --color-surface-secondary: #F5F2EB;
+  --color-gold: #C5A265;
+  --color-gold-light: #DFCA9B;
+  --color-gold-dark: #9A7737;
+  --color-gold-subtle: #F9F5EC;
+  --color-border: #EAE4D9;
+  --color-muted: #6B655E;
+
+  --font-sans: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Playfair Display", "Cormorant Garamond", Georgia, serif;
+
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --radius: 0.5rem;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, .font-serif {
+    font-family: var(--font-serif);
+    letter-spacing: -0.01em;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .text-gold-gradient {
+    background: linear-gradient(135deg, #B89354 0%, #D8BE8A 50%, #9A7737 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-gold-gradient {
+    background: linear-gradient(135deg, #C5A265 0%, #E3CDA0 50%, #B89354 100%);
+  }
+}
+
+/* Luxury custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF8F5;
+}
+::-webkit-scrollbar-thumb {
+  background: #D9CEBE;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C5A265;
+}
+
+/* Subtle luxury shimmer and animation utilities */
+@keyframes subtle-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: subtle-fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

@@ -1,0 +1,332 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+}
+
+enum EnquiryStatus {
+  NEW
+  CONTACTED
+  FOLLOW_UP
+  RESOLVED
+  CLOSED
+  SPAM
+}
+
+enum PreferredContactMethod {
+  WHATSAPP
+  PHONE
+  EMAIL
+}
+
+enum BannerPosition {
+  HERO
+  PROMO_STRIP
+  COLLECTION_FEATURE
+}
+
+enum EventType {
+  PAGE_VIEW
+  PRODUCT_VIEW
+  CATEGORY_VIEW
+  COLLECTION_VIEW
+  SEARCH
+  ENQUIRY_SUBMIT
+  WHATSAPP_CLICK
+  CONTACT_SUBMIT
+}
+
+model AdminUser {
+  id              String            @id @default(uuid())
+  email           String            @unique
+  passwordHash    String
+  fullName        String
+  role            Role              @default(ADMIN)
+  isActive        Boolean           @default(true)
+  lastLoginAt     DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  activities      ActivityLog[]
+  enquiryNotes    EnquiryActivity[]
+
+  @@index([email])
+}
+
+model Category {
+  id           String    @id @default(uuid())
+  name         String
+  slug         String    @unique
+  description  String?
+  image        String?
+  heroBanner   String?
+  displayOrder Int       @default(0)
+  isVisible    Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  products     Product[]
+
+  @@index([slug])
+  @@index([isVisible])
+}
+
+model Collection {
+  id             String              @id @default(uuid())
+  name           String
+  slug           String              @unique
+  description    String?
+  bannerImage    String?
+  isFeatured     Boolean             @default(false)
+  isPublished    Boolean             @default(true)
+  displayOrder   Int                 @default(0)
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  products       CollectionProduct[]
+
+  @@index([slug])
+  @@index([isFeatured])
+  @@index([isPublished])
+}
+
+model Product {
+  id               String              @id @default(uuid())
+  name             String
+  slug             String              @unique
+  sku              String              @unique
+  shortDescription String?
+  description      String?
+  price            Decimal?            @db.Decimal(12, 2)
+  discountedPrice  Decimal?            @db.Decimal(12, 2)
+  currency         String              @default("INR")
+  mainImage        String
+  material         String?             // e.g. Gold, Silver, Platinum
+  purity           String?             // e.g. 22K (916), 18K (750), 925 Sterling Silver
+  weight           String?             // e.g. 14.50 grams
+  stoneDetails     String?             // e.g. Natural VVS Diamonds, Burma Emeralds
+  dimensions       String?
+  inStock          Boolean             @default(true)
+  isFeatured       Boolean             @default(false)
+  isNewArrival     Boolean             @default(false)
+  isPublished      Boolean             @default(true)
+  categoryId       String
+  category         Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  seoTitle         String?
+  seoDescription   String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  images           ProductImage[]
+  collections      CollectionProduct[]
+  enquiries        Enquiry[]
+
+  @@index([slug])
+  @@index([sku])
+  @@index([categoryId])
+  @@index([isPublished])
+  @@index([isFeatured])
+  @@index([isNewArrival])
+}
+
+model ProductImage {
+  id          String   @id @default(uuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url         String
+  alt         String?
+  sortOrder   Int      @default(0)
+  isThumbnail Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([productId])
+}
+
+model CollectionProduct {
+  id           String     @id @default(uuid())
+  collectionId String
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  productId    String
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sortOrder    Int        @default(0)
+
+  @@unique([collectionId, productId])
+  @@index([collectionId])
+  @@index([productId])
+}
+
+model Enquiry {
+  id              String                 @id @default(uuid())
+  customerName    String
+  email           String
+  phone           String
+  message         String
+  status          EnquiryStatus          @default(NEW)
+  preferredMethod PreferredContactMethod @default(WHATSAPP)
+  internalNotes   String?
+  productId       String?
+  product         Product?               @relation(fields: [productId], references: [id], onDelete: SetNull)
+  sourceUrl       String?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  activities      EnquiryActivity[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([productId])
+  @@index([email])
+  @@index([phone])
+}
+
+model EnquiryActivity {
+  id             String    @id @default(uuid())
+  enquiryId      String
+  enquiry        Enquiry   @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+  adminId        String?
+  admin          AdminUser? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  action         String
+  notes          String?
+  previousStatus String?
+  newStatus      String?
+  createdAt      DateTime  @default(now())
+
+  @@index([enquiryId])
+}
+
+model WebsitePage {
+  id             String   @id @default(uuid())
+  slug           String   @unique
+  title          String
+  content        String   @db.Text
+  isPublished    Boolean  @default(true)
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([slug])
+}
+
+model Banner {
+  id             String         @id @default(uuid())
+  title          String
+  subtitle       String?
+  linkUrl        String?
+  imageUrl       String
+  mobileImageUrl String?
+  position       BannerPosition @default(HERO)
+  displayOrder   Int            @default(0)
+  isActive       Boolean        @default(true)
+  startDate      DateTime?
+  endDate        DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([position, isActive])
+}
+
+model Testimonial {
+  id           String   @id @default(uuid())
+  customerName String
+  location     String?
+  quote        String   @db.Text
+  rating       Int      @default(5)
+  avatarUrl    String?
+  isPublished  Boolean  @default(true)
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isPublished])
+}
+
+model MediaAsset {
+  id        String   @id @default(uuid())
+  title     String
+  fileUrl   String
+  fileType  String
+  fileSize  Int?
+  width     Int?
+  height    Int?
+  folder    String?  @default("general")
+  altText   String?
+  createdAt DateTime @default(now())
+
+  @@index([folder])
+}
+
+model WebsiteSettings {
+  id                   String   @id @default("default")
+  brandName            String   @default("Royal Shine Jewellery")
+  tagLine              String?  @default("Timeless Elegance & Exquisite Craftsmanship")
+  logoUrl              String?  @default("/images/Royal-Shine-Logo.png")
+  faviconUrl           String?  @default("/favicon.ico")
+  contactEmail         String   @default("contact@royalshine.com")
+  phone                String   @default("+91 98765 43210")
+  whatsappNumber       String   @default("+919876543210")
+  showroomAddress      String   @default("Heritage Gold Souk, Luxury Avenue, Mumbai 400001, India")
+  businessHours        String   @default("Mon - Sat: 10:30 AM - 8:30 PM | Sunday by Appointment")
+  instagramUrl         String?  @default("https://instagram.com/royalshinejewellery")
+  facebookUrl          String?  @default("https://facebook.com/royalshinejewellery")
+  youtubeUrl           String?
+  defaultCurrency      String   @default("INR")
+  defaultSeoTitle      String   @default("Royal Shine Jewellery — Premium Diamond & Gold Jewellery")
+  defaultSeoDescription String  @default("Discover the timeless elegance of Royal Shine Jewellery. Handcrafted gold, diamond, polki and silver masterpieces.")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model SEOSettings {
+  id             String   @id @default(uuid())
+  pagePath       String   @unique
+  title          String
+  description    String
+  ogImage        String?
+  canonicalUrl   String?
+  keywords       String?
+  structuredData String?  @db.Text
+  updatedAt      DateTime @updatedAt
+
+  @@index([pagePath])
+}
+
+model ActivityLog {
+  id          String    @id @default(uuid())
+  adminId     String?
+  admin       AdminUser? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  action      String
+  entityType  String
+  entityId    String?
+  details     String?   @db.Text
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([adminId])
+  @@index([entityType])
+  @@index([createdAt])
+}
+
+model AnalyticsEvent {
+  id        String    @id @default(uuid())
+  eventType EventType
+  entityId  String?
+  path      String
+  referrer  String?
+  userAgent String?
+  ipHash    String?
+  sessionId String?
+  metadata  String?   @db.Text
+  createdAt DateTime  @default(now())
+
+  @@index([eventType])
+  @@index([path])
+  @@index([createdAt])
+}
